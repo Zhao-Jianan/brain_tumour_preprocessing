@@ -1,0 +1,8 @@
+nohup python patient_cases_preprocess.py > preprocess_log.out 2>&1 &
+
+ps -u $USER -f | grep python
+pgrep -u $USER -a python
+pkill -f patient_cases_preprocess.py
+
+
+
