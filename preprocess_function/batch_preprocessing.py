@@ -201,15 +201,15 @@ def preprocess_single_check(input_root_dir,
     base_modal_filename = os.path.basename(base_modal_path)
     base_modal_filename_noext = patient_id + '_' + condition_name + '_' + reference_mode
     print(f" {reference_mode}_filename_noext: {base_modal_filename_noext}")    
-    base_modal_output_path = os.path.join(output_root_dir, patient_id, condition_name, base_modal_filename)
-    os.makedirs(os.path.dirname(base_modal_output_path), exist_ok=True)
+    patient_condition_outdir = os.path.join(output_root_dir, patient_id, condition_name)
+    os.makedirs(patient_condition_outdir, exist_ok=True)
     print(f"    处理参考模态文件: {base_modal_filename}")
 
     # 执行 T1ce 预处理
     preprocessed_reference, mask, affine, reference_path = run_preprocessing_pipeline(
         base_modal_path,
         reference_path=None,
-        output_dir=output_root_dir,
+        output_dir=patient_condition_outdir,
         output_filename=base_modal_filename_noext,
         skip_n4=False,
         batch_process=True,
@@ -219,7 +219,7 @@ def preprocess_single_check(input_root_dir,
     )
 
     # 记录所有mask路径
-    mask_paths = [os.path.join(output_root_dir, f"{patient_id}_{condition_name}_{reference_mode}_bet.nii.gz")]
+    mask_paths = [os.path.join(patient_condition_outdir, f"{patient_id}_{condition_name}_{reference_mode}_bet.nii.gz")]
 
     # 处理其他模态
     for modality, input_path in modality_dict.items():
@@ -228,14 +228,14 @@ def preprocess_single_check(input_root_dir,
 
         filename = os.path.basename(input_path)
         filename_noext = patient_id + '_' + condition_name + f'_{modality}'
-        output_path = os.path.join(output_root_dir, filename)
+        output_path = os.path.join(patient_condition_outdir, filename)
         print(f"    处理模态: {modality} - {filename}")
 
         # 执行预处理，使用重采样后的 T1ce 作为参考进行对齐
         preprocessed, mask, affine, _ = run_preprocessing_pipeline(
             input_path,
             reference_path=reference_path,  # 使用预处理后的 T1ce 作为参考
-            output_dir=output_root_dir,
+            output_dir=patient_condition_outdir,
             output_filename=filename_noext,
             skip_n4=False,
             batch_process=True,
@@ -244,12 +244,12 @@ def preprocess_single_check(input_root_dir,
             plot_save_path='plots'
         )
 
-        mask_paths.append(os.path.join(output_root_dir, f"{patient_id}_{condition_name}_{modality}_bet.nii.gz"))
+        mask_paths.append(os.path.join(patient_condition_outdir, f"{patient_id}_{condition_name}_{modality}_bet.nii.gz"))
 
 
     # === 合并4个mask ===
     print("  === 合并brain mask ===")
-    fused_mask_path = os.path.join(output_root_dir, f"{patient_id}_{condition_name}_fused_mask.nii.gz")
+    fused_mask_path = os.path.join(patient_condition_outdir, f"{patient_id}_{condition_name}_fused_mask.nii.gz")
     fused_mask = fuse_brain_masks(mask_paths, fused_mask_path, mode='intersection')
 
     # === 执行标准化 ===
@@ -257,7 +257,7 @@ def preprocess_single_check(input_root_dir,
     normalized_images = final_standardization_and_normalization(
         patient_id, 
         condition_name, 
-        output_root_dir, 
+        patient_condition_outdir, 
         fused_mask, 
         norm_type=norm_type
     )
@@ -279,7 +279,7 @@ def preprocess_single_check(input_root_dir,
             modality_suffix = modality
 
         output_filename = f"masked_{patient_id}_{condition_name}_{modality_suffix}.nii.gz"
-        output_path = os.path.join(output_root_dir, output_filename)
+        output_path = os.path.join(patient_condition_outdir, output_filename)
         nib.save(nifti_img, output_path)
         print(f"    标准化后图像已保存: {output_path}")
 
@@ -291,7 +291,7 @@ def preprocess_single_check(input_root_dir,
             print(f"    已删除: {mask_path}")
 
     # === 删除临时重采样参考文件 ===
-    temp_reference_path = os.path.join(output_root_dir, "temp_reference_resampled.nii.gz")
+    temp_reference_path = os.path.join(patient_condition_outdir, "temp_reference_resampled.nii.gz")
     if os.path.exists(temp_reference_path):
         os.remove(temp_reference_path)
         print(f"    已删除: {temp_reference_path}")

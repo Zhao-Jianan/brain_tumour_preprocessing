@@ -4,7 +4,7 @@ from preprocess_function.batch_preprocessing import preprocess_single_check
 def main():
     reference_mode="T1ce"
     model_style='nnunet'
-    norm_type='no_norm'
+    norm_type='std'
     plot_mode='save'
 
     # 20221004_36477104_KHH
