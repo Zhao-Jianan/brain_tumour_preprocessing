@@ -1,10 +1,15 @@
 import nibabel as nib
 import numpy as np
 
-img = nib.load("20220114_35320313_BSR_20220111_pre_OP_T1.nii.gz")
+# 读取图像
+img = nib.load(r"masked_20220114_35320313_BSR_20220111_pre_OP_0003.nii.gz")
 data = img.get_fdata()
 
-mean_val = np.mean(data)
-std_val = np.std(data)
+# 创建非零掩模
+mask = data != 0
 
-print("Mean:", mean_val, "Std:", std_val)
+# 只对非零像素计算均值和标准差
+mean_val = data[mask].mean()
+std_val = data[mask].std()
+
+print("Mean (nonzero):", mean_val, "Std (nonzero):", std_val)
