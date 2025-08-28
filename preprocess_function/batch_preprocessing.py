@@ -80,7 +80,7 @@ def final_standardization_and_normalization(patient_id, condition_name, output_r
     for modality in modality_list:
         filename = f"{patient_id}_{condition_name}_{modality}.nii.gz"
         file_path = os.path.join(output_root_dir, filename)
-        logger.info('file_path:', file_path)
+        logger.info(f'file_path: {file_path}')
 
         if not os.path.exists(file_path):
             logger.error(f"    [跳过] 没有找到预处理后的 {modality} 文件")
