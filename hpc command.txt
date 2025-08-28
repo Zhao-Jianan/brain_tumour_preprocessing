@@ -1,4 +1,4 @@
-nohup python patient_cases_preprocess.py > preprocess_log.out 2>&1 &
+nohup python patient_cases_preprocess_special_cases.py > preprocess_log_special_cases.log 2>&1 &
 
 ps -u $USER -f | grep python
 pgrep -u $USER -a python
